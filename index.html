@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢卡牌對戰</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background-color: #f4f4f9; 
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #333; margin-top: 10px; }
+        
+        /* 控制按鈕區置頂 */
+        .controls { margin-bottom: 30px; }
+        button { 
+            padding: 12px 24px; font-size: 16px; margin: 0 10px; 
+            cursor: pointer; background-color: #ffcc00; 
+            border: none; border-radius: 8px; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: #e6b800; transform: translateY(-2px); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* 核心版面排版：使用 Flexbox 讓三個元素並排 */
+        .game-board { 
+            display: flex; 
+            justify-content: center; /* 讓內容置中 */
+            align-items: flex-start; /* 讓卡片和對話框頂部對齊 */
+            gap: 30px; /* 元素之間的間距 */
+            max-width: 1000px; 
+            margin: 0 auto;
+        }
+        
+        /* 卡牌樣式 (左右兩側) */
+        .card { 
+            border: 3px solid #ddd; 
+            border-radius: 15px; 
+            padding: 20px; 
+            width: 220px; 
+            background-color: white; 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 讓卡片內的圖片文字置中 */
+        }
+        .card img { width: 160px; height: 160px; }
+        .stats { 
+            font-weight: bold; 
+            color: #555; 
+            text-align: left; 
+            width: 100%; 
+            padding-left: 10px; 
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .stats p { margin: 5px 0; }
+        
+        /* 戰鬥紀錄面板樣式 (中間) */
+        #log-container {
+            flex-grow: 1; /* 自動填滿左右卡片中間的剩餘空間 */
+            max-width: 450px; /* 限制對話框的最大寬度 */
+            height: 400px; /* 固定高度，讓版面不跑版 */
+            background-color: #222;
+            color: #fff;
+            border-radius: 10px;
+            padding: 15px 20px;
+            text-align: left;
+            overflow-y: auto; /* 文字超過高度時顯示上下捲軸 */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+            border: 4px solid #444;
+        }
+        
+        /* 隱藏捲軸但保留功能 (美化對話框) */
+        #log-container::-webkit-scrollbar { width: 8px; }
+        #log-container::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>寶可夢卡牌對戰</h1>
+    
+    <div class="controls">
+        <button onclick="drawCards()" id="btn-draw">🎲 隨機抽卡</button>
+        <button onclick="startBattle()" id="btn-battle" disabled>⚔️ 開始戰鬥！</button>
+    </div>
+
+    <div class="game-board">
+        
+        <div class="card" id="player-card">
+            <h3>玩家</h3>
+            <img id="player-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            <h2 id="player-name">???</h2>
+            <div class="stats">
+                <p>❤️ HP: <span id="player-hp">-</span> / <span id="player-max-hp">-</span></p>
+                <p>⚔️ 攻擊: <span id="player-atk">-</span></p>
+            </div>
+        </div>
+
+        <div id="log-container">
+            <div id="log">請點擊上方「隨機抽卡」來召喚寶可夢！<br><br>準備就緒後點擊「開始戰鬥！」</div>
+        </div>
+
+        <div class="card" id="enemy-card">
+            <h3>對手</h3>
+            <img id="enemy-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            <h2 id="enemy-name">???</h2>
+            <div class="stats">
+                <p>❤️ HP: <span id="enemy-hp">-</span> / <span id="enemy-max-hp">-</span></p>
+                <p>⚔️ 攻擊: <span id="enemy-atk">-</span></p>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
