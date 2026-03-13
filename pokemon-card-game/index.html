@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢卡牌對戰</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f4f4f9; }
+        h1 { color: #333; margin-top: 30px; }
+        .game-board { display: flex; justify-content: center; gap: 50px; margin-top: 30px; }
+        
+        /* 卡牌樣式 */
+        .card { 
+            border: 3px solid #ddd; 
+            border-radius: 15px; 
+            padding: 20px; 
+            width: 220px; 
+            background-color: white; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: scale(1.05); }
+        .card img { width: 150px; height: 150px; }
+        .stats { font-weight: bold; color: #555; }
+        
+        /* 按鈕與訊息區 */
+        .controls { margin-top: 40px; }
+        button { 
+            padding: 12px 24px; font-size: 16px; margin: 0 10px; 
+            cursor: pointer; background-color: #ffcc00; 
+            border: none; border-radius: 8px; font-weight: bold;
+        }
+        button:hover { background-color: #e6b800; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #log { margin-top: 30px; font-size: 20px; font-weight: bold; color: #d32f2f; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <h1>寶可夢卡牌對戰 (簡易版)</h1>
+    
+    <div class="game-board">
+        <div class="card" id="player-card">
+            <h3>玩家</h3>
+            <img id="player-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            <h2 id="player-name">???</h2>
+            <div class="stats">
+                <p>HP: <span id="player-hp">-</span></p>
+                <p>攻擊力: <span id="player-atk">-</span></p>
+            </div>
+        </div>
+
+        <div class="card" id="enemy-card">
+            <h3>對手</h3>
+            <img id="enemy-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            <h2 id="enemy-name">???</h2>
+            <div class="stats">
+                <p>HP: <span id="enemy-hp">-</span></p>
+                <p>攻擊力: <span id="enemy-atk">-</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="drawCards()">🎲 隨機抽卡</button>
+        <button onclick="battle()" id="btn-battle" disabled>⚔️ 開始戰鬥！</button>
+    </div>
+
+    <div id="log">請點擊「隨機抽卡」來召喚寶可夢！</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
