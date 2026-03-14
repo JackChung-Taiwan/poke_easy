@@ -1,19 +1,62 @@
-// ============== 遊戲變數 ==============
+// ============== 遊戲全域變數 ==============
 let playerPokemon = null;
 let enemyPokemon = null;
 let availablePokemon = []; 
+
+// 這裡準備一個空箱子，用來裝 1025 隻寶可夢的中文名字
+let globalZhDict = {}; 
 
 const cellCount = 5; 
 const theta = 360 / cellCount; 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// 【終極防呆】第九代繁體中文圖鑑字典 (906 ~ 1025)
-// 確保就算 PokeAPI 伺服器沒有中文翻譯，我們也能自己顯示！
-const gen9ZhDict = {
-    906:"新葉喵", 907:"蒂蕾喵", 908:"魔幻假面喵", 909:"呆火鱷", 910:"炙燙鱷", 911:"骨紋巨聲鱷", 912:"潤水鴨", 913:"湧躍鴨", 914:"狂歡浪舞鴨", 915:"愛吃豚", 916:"飄香豚", 917:"團珠蛛", 918:"操陷蛛", 919:"豆蟋蟀", 920:"烈腿蝗", 921:"布撥", 922:"布土撥", 923:"巴布土撥", 924:"一對鼠", 925:"一家鼠", 926:"狗仔包", 927:"烤狗犬", 928:"迷你芙", 929:"奧利紐", 930:"奧利瓦", 931:"怒鸚哥", 932:"鹽石寶", 933:"鹽石壘", 934:"鹽石巨靈", 935:"炭小侍", 936:"紅蓮鎧騎", 937:"蒼炎刃鬼", 938:"光蚪仔", 939:"電肚蛙", 940:"電海燕", 941:"大電海燕", 942:"偶叫獒", 943:"獒教父", 944:"滋汁海黽", 945:"塗標客", 946:"納噬草", 947:"怖納噬草", 948:"原野水母", 949:"陸地水母", 950:"毛崖蟹", 951:"熱辣娃", 952:"狠辣椒", 953:"蟲滾泥", 954:"蟲甲聖", 955:"飄飄雛", 956:"超能豔鴕", 957:"小鍛匠", 958:"巧鍛匠", 959:"巨鍛匠", 960:"海地鼠", 961:"三海地鼠", 962:"下石鳥", 963:"波普海豚", 964:"海豚俠", 965:"噗隆隆", 966:"普隆隆姆", 967:"摩托蜥", 968:"拖拖蚓", 969:"晶光芽", 970:"晶光花", 971:"墓仔狗", 972:"墓揚犬", 973:"纏紅鶴", 974:"走鯨", 975:"浩大鯨", 976:"輕身鱈", 977:"吃吼霸", 978:"米立龍", 979:"棄世猴", 980:"土王", 981:"奇麒麟", 982:"土龍節節", 983:"仆斬將軍", 984:"雄偉牙", 985:"吼叫尾", 986:"猛惡菇", 987:"沙鐵皮", 988:"振翼髮", 989:"鐵轍跡", 990:"鐵包袱", 991:"鐵臂膀", 992:"鐵脖頸", 993:"鐵毒蛾", 994:"鐵荊棘", 995:"涼脊龍", 996:"凍脊龍", 997:"戟脊龍", 998:"索財靈", 999:"賽富豪", 1000:"古簡蝸", 1001:"古劍豹", 1002:"古鼎鹿", 1003:"古玉魚", 1004:"轟鳴月", 1005:"鐵武者", 1006:"鐵武者", 1007:"故勒頓", 1008:"密勒頓", 1009:"波盪水", 1010:"鐵斑葉", 1011:"裹蜜蟲", 1012:"斯魔茶", 1013:"來悲粗茶", 1014:"夠讚狗", 1015:"願增猿", 1016:"吉雉雞", 1017:"厄月椪", 1018:"鋁鋼橋龍", 1019:"蜜集大蛇", 1020:"破空焰", 1021:"猛雷鼓", 1022:"鐵磐岩", 1023:"鐵頭殼", 1024:"太樂巴戈斯", 1025:"桃歹郎"
-};
+// ============== 預載入全世代中文圖鑑 (GraphQL 魔法) ==============
+// 遊戲一打開時會先執行這個函數，一次性下載所有中文名字！
+async function initGame() {
+    const btnDraw = document.getElementById('btn-draw');
+    btnDraw.innerText = "📚 正在下載全國中文圖鑑...";
+    btnDraw.disabled = true;
 
-// ============== 滑鼠拖曳控制 3D 旋轉變數 ==============
+    // 這是 GraphQL 語法：告訴伺服器「我只要繁體(4)跟簡體(12)的名字，其他都不要！」
+    const query = `
+    query {
+      pokemon_v2_pokemonspeciesname(where: {language_id: {_in: [4, 12]}}) {
+        pokemon_species_id
+        name
+        language_id
+      }
+    }`;
+
+    try {
+        const response = await fetch('https://beta.pokeapi.co/graphql/v1beta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const { data } = await response.json();
+        
+        // 將下載回來的資料裝進 globalZhDict 字典裡
+        data.pokemon_v2_pokemonspeciesname.forEach(item => {
+            // 如果還沒存過，或者是繁體中文(4)，就存起來
+            if (!globalZhDict[item.pokemon_species_id] || item.language_id === 4) {
+                globalZhDict[item.pokemon_species_id] = item.name;
+            }
+        });
+
+        console.log("全世代中文圖鑑下載完成！總共:", Object.keys(globalZhDict).length, "隻");
+        btnDraw.innerText = "🎲 抽取 5 張卡牌";
+        btnDraw.disabled = false;
+    } catch (error) {
+        console.error("圖鑑下載失敗", error);
+        btnDraw.innerText = "❌ 載入失敗，請重新整理網頁";
+    }
+}
+
+// 當網頁載入完成時，立刻執行 initGame
+window.onload = initGame;
+
+
+// ============== 滑鼠與手機觸控事件 (3D 旋轉) ==============
 let isDragging = false;
 let startX = 0;
 let currentAngle = 0;
@@ -22,50 +65,36 @@ let lastAngle = 0;
 const scene = document.getElementById('drag-scene');
 const carousel = document.querySelector('.carousel');
 
-scene.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.pageX;
-    e.preventDefault(); 
-});
-
-window.addEventListener('mousemove', (e) => {
+function startDrag(x) { isDragging = true; startX = x; }
+function moveDrag(x) {
     if (!isDragging) return;
-    const dx = e.pageX - startX;
-    currentAngle = lastAngle + (dx * 0.5); 
+    currentAngle = lastAngle + ((x - startX) * 0.8); 
     carousel.style.transform = `translateZ(-250px) rotateY(${currentAngle}deg)`;
-});
+}
+function endDrag() { if (isDragging) { isDragging = false; lastAngle = currentAngle; } }
 
-window.addEventListener('mouseup', () => {
-    if (isDragging) {
-        isDragging = false;
-        lastAngle = currentAngle;
-    }
-});
+scene.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.pageX); });
+window.addEventListener('mousemove', (e) => moveDrag(e.pageX));
+window.addEventListener('mouseup', endDrag);
 
-// ============== 抓取與核心邏輯 ==============
+scene.addEventListener('touchstart', (e) => startDrag(e.touches[0].pageX));
+window.addEventListener('touchmove', (e) => moveDrag(e.touches[0].pageX));
+window.addEventListener('touchend', endDrag);
+
+
+// ============== API 抓取邏輯 (變得超快！) ==============
 function getRandomId() {
-    return Math.floor(Math.random() * 120) + 906; // 鎖定第九代
+    return Math.floor(Math.random() * 1025) + 1; // 全國圖鑑 1 ~ 1025
 }
 
-// 抓取寶可夢資料
 async function fetchPokemon(id) {
     try {
+        // 現在我們只需要抓取數值，不用再抓物種資料了，因為名字已經在我們手上了！
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
         const data = await response.json();
         
-        let nameZh = gen9ZhDict[id]; // 優先查字典
-
-        // 如果字典沒寫到 (例如你以後想抽別代的)，再去 API 裡面找
-        if (!nameZh) {
-            const speciesResponse = await fetch(data.species.url);
-            const speciesData = await speciesResponse.json();
-            const zhHantNameObj = speciesData.names.find(n => n.language.name === 'zh-Hant');
-            if (zhHantNameObj) {
-                nameZh = zhHantNameObj.name; 
-            } else {
-                nameZh = data.name.toUpperCase(); // 都找不到才顯示英文
-            }
-        }
+        // 直接從我們剛下載好的巨大字典中拿出名字，如果真的沒有才顯示英文
+        let nameZh = globalZhDict[id] || data.name.toUpperCase();
 
         const types = data.types.map(t => t.type.name);
 
@@ -81,7 +110,6 @@ async function fetchPokemon(id) {
             image: data.sprites.other['official-artwork'].front_default
         };
     } catch (error) {
-        console.error("讀取寶可夢失敗", error);
         return null;
     }
 }
@@ -93,12 +121,13 @@ function appendLog(text) {
     logContainer.scrollTop = logContainer.scrollHeight; 
 }
 
-// 抽取 5 隻寶可夢
+
+// ============== 抽卡邏輯 ==============
 async function drawCards() {
     const btnDraw = document.getElementById('btn-draw');
     const btnNext = document.getElementById('btn-next-group');
     
-    btnDraw.innerText = "⏳ 正在獲取寶可夢...";
+    btnDraw.innerText = "⏳ 正在尋找未登錄的寶可夢...";
     btnDraw.disabled = true;
     btnNext.disabled = true;
     document.getElementById('btn-battle').disabled = true;
@@ -153,7 +182,7 @@ async function drawCards() {
     btnNext.disabled = false;
 }
 
-// 玩家確認選擇
+// ============== 選擇出戰卡牌 ==============
 async function choosePokemon(index) {
     playerPokemon = availablePokemon[index];
     document.getElementById('selection-screen').style.display = 'none';
@@ -182,7 +211,7 @@ async function choosePokemon(index) {
     document.getElementById('btn-battle').disabled = false;
 }
 
-// 戰鬥邏輯
+// ============== 回合制戰鬥邏輯 ==============
 async function startBattle() {
     if (!playerPokemon || !enemyPokemon) return;
 
