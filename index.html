@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>寶可夢 3D 卡牌對戰</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffcc00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -97,10 +103,7 @@
         #log-container::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
 
         /* ================= 手機版響應式設計 (RWD) ================= */
-        /* 當螢幕寬度小於 768px (例如手機、直向平板) 時，套用以下規則 */
         @media (max-width: 768px) {
-            
-            /* 控制按鈕區：改為上下排列，並加寬 */
             .controls {
                 display: flex;
                 flex-direction: column;
@@ -112,33 +115,25 @@
                 max-width: 300px;
                 margin: 0;
             }
-
-            /* 3D 旋轉木馬：整體縮放 65%，避免撐破手機左右兩側 */
             .scene {
                 transform: scale(0.65);
                 margin: 0 auto 20px auto; 
             }
             .drag-hint { font-size: 14px; }
-
-            /* 戰鬥排版：由「左右」並排改為「上下」垂直排列 */
             .game-board {
                 flex-direction: column;
                 align-items: center;
                 gap: 15px;
             }
-
-            /* 重新排序 (核心魔法)：對手在最上面，文字居中，玩家在最下面 */
             #enemy-card { order: 1; width: 95%; max-width: 350px; }
             #log-container { 
                 order: 2; 
                 width: 95%; 
                 max-width: 350px; 
-                height: 250px; /* 手機螢幕較短，文字框高度調降 */
+                height: 250px; 
                 font-size: 14px; 
             }
             #player-card { order: 3; width: 95%; max-width: 350px; }
-
-            /* 縮小卡片內的圖片與文字，節省垂直空間，讓畫面更緊湊 */
             .card { padding: 15px; }
             .card img { width: 120px; height: 120px; }
             .card h3.zh-name { font-size: 20px; margin: 0 0 5px; }
@@ -196,5 +191,15 @@
     </div>
 
     <script src="app.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('PWA Service Worker 註冊成功！範圍:', reg.scope))
+                    .catch(err => console.error('PWA Service Worker 註冊失敗:', err));
+            });
+        }
+    </script>
 </body>
 </html>
