@@ -1,0 +1,23 @@
+{
+  "name": "Poke Easy Game",
+  "short_name": "PokeEasy",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffcb05",
+  "description": "Poke Easy - 一個方便的遊戲工具應用程式",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
